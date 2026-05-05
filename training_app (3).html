@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e1a">
+<title>S3 Training</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;
+  --accent:#c8f557;--accent2:#57f5b8;--blue:#5b9cf6;--amber:#f5a623;
+  --text:#f0f4ff;--text2:rgba(240,244,255,0.6);--text3:rgba(240,244,255,0.28);
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.hdr{background:var(--bg);padding:48px 20px 14px;position:sticky;top:0;z-index:50;border-bottom:1px solid var(--border)}
+.hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.logo{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:0.18em;color:var(--accent);text-transform:uppercase}
+.sync{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--accent2);flex-shrink:0}
+.sdot.pulse{animation:pulse 1.4s infinite}
+.sdot.err{background:#f56565}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.week-row{display:flex;align-items:center;gap:10px}
+.week-info{flex:1}
+.wk-label{font-size:36px;font-weight:300;line-height:1;letter-spacing:-0.02em}
+.wk-date{font-size:11px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace;letter-spacing:0.05em}
+.nav{width:36px;height:36px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s}
+.nav:hover{background:var(--bg3);color:var(--text)}
+.nav:active{transform:scale(0.9)}
+.badges{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 9px;border-radius:4px}
+.badge-b{background:rgba(200,245,87,0.1);color:var(--accent);border:1px solid rgba(200,245,87,0.2)}
+.badge-w{background:rgba(255,255,255,0.04);color:var(--text3);border:1px solid var(--border)}
+
+/* WEEK STRIP */
+.strip{display:flex;gap:5px;padding:10px 20px;overflow-x:auto;scrollbar-width:none;background:var(--bg2);border-bottom:1px solid var(--border)}
+.strip::-webkit-scrollbar{display:none}
+.wchip{flex-shrink:0;font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;border-radius:4px;border:1px solid var(--border);cursor:pointer;color:var(--text3);background:transparent;transition:all 0.15s;white-space:nowrap}
+.wchip:hover{color:var(--text);border-color:var(--border2)}
+.wchip.on{background:var(--accent);color:#0a0e1a;border-color:var(--accent)}
+
+/* ATHLETE FILTER */
+.fbar{display:flex;gap:5px;padding:9px 20px;overflow-x:auto;scrollbar-width:none;background:var(--bg2);border-bottom:1px solid var(--border);align-items:center}
+.fbar::-webkit-scrollbar{display:none}
+.flbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);flex-shrink:0;margin-right:2px}
+.fchip{flex-shrink:0;font-family:'DM Mono',monospace;font-size:10px;padding:4px 9px;border-radius:4px;border:1px solid rgba(87,245,184,0.2);cursor:pointer;color:var(--accent2);background:rgba(87,245,184,0.05);transition:all 0.15s;white-space:nowrap}
+.fchip.fall{color:var(--text3);background:transparent;border-color:var(--border)}
+.fchip.on{background:var(--accent2);color:#0a0e1a;border-color:var(--accent2)}
+.fchip.fall.on{background:var(--text);color:#0a0e1a;border-color:var(--text)}
+
+/* SESSION CARDS */
+.sessions{padding:14px;display:flex;flex-direction:column;gap:8px}
+.card{border-radius:12px;border:1px solid var(--border);background:var(--bg2);overflow:hidden;transition:border-color 0.2s}
+.card:hover{border-color:var(--border2)}
+.chdr{display:flex;align-items:center;gap:12px;padding:13px 15px;cursor:pointer;user-select:none}
+.dicon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace;font-size:11px;font-weight:500}
+.d-tue{background:rgba(91,156,246,0.15);color:var(--blue)}
+.d-thu{background:rgba(87,245,184,0.15);color:var(--accent2)}
+.d-sat{background:rgba(200,245,87,0.15);color:var(--accent)}
+.cmeta{flex:1;min-width:0}
+.cday{font-size:14px;font-weight:500;color:var(--text)}
+.ctype{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chev{font-size:10px;color:var(--text3);transition:transform 0.22s;flex-shrink:0}
+.chev.open{transform:rotate(90deg);color:var(--text2)}
+.cbody{display:none;padding:0 15px 14px;border-top:1px solid var(--border)}
+.cbody.open{display:block}
+
+/* TYPE BADGE inside card */
+.type-pill{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:10px;margin-top:11px}
+.tp-track{background:rgba(91,156,246,0.15);color:var(--blue);border:1px solid rgba(91,156,246,0.2)}
+.tp-grass{background:rgba(87,245,184,0.12);color:var(--accent2);border:1px solid rgba(87,245,184,0.2)}
+.tp-hill{background:rgba(245,166,35,0.12);color:var(--amber);border:1px solid rgba(245,166,35,0.2)}
+.tp-steps{background:rgba(200,245,87,0.12);color:var(--accent);border:1px solid rgba(200,245,87,0.2)}
+.tp-other{background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border)}
+
+/* DRILLS */
+.drills{display:flex;flex-direction:column}
+.drill{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);transition:opacity 0.18s}
+.drill:last-child{border-bottom:none}
+.drill.dim{opacity:0.1}
+.ddot{width:3px;height:3px;border-radius:50%;background:var(--accent);margin-top:8px;flex-shrink:0}
+.dtext{font-size:13px;color:rgba(240,244,255,0.82);line-height:1.6}
+.achips{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:5px}
+.ac{font-family:'DM Mono',monospace;font-size:10px;padding:2px 6px;border-radius:3px;background:rgba(87,245,184,0.1);color:var(--accent2);border:1px solid rgba(87,245,184,0.18)}
+
+/* REST / EMPTY */
+.rest{border-radius:12px;border:1px dashed var(--border);padding:13px 15px;display:flex;align-items:center;gap:12px}
+.rtxt{font-size:13px;color:var(--text3);font-style:italic}
+.empty{margin:20px 14px;border-radius:12px;border:1px dashed var(--border);padding:28px 20px;text-align:center;color:var(--text3);font-size:13px}
+.empty strong{display:block;font-size:17px;font-weight:300;color:rgba(240,244,255,0.15);margin-bottom:5px}
+
+/* STATES */
+.state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;gap:12px;color:var(--text3);font-size:14px}
+.spin{width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.errtxt{color:#f56565;font-size:13px;text-align:center;padding:0 24px;line-height:1.7}
+.footer{padding:20px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:0.08em}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo">S3 Training</div>
+    <div class="sync"><div class="sdot pulse" id="sdot"></div><span id="stxt">Syncing…</span></div>
+  </div>
+  <div class="week-row">
+    <button class="nav" id="prev">&#8592;</button>
+    <div class="week-info">
+      <div class="wk-label" id="wkLabel">—</div>
+      <div class="wk-date" id="wkDate">—</div>
+    </div>
+    <button class="nav" id="next">&#8594;</button>
+  </div>
+  <div class="badges" id="badges"></div>
+</div>
+
+<div class="strip" id="strip"></div>
+<div class="fbar" id="fbar"><span class="flbl">Athlete</span></div>
+<div id="main"><div class="state"><div class="spin"></div><span>Loading programme…</span></div></div>
+<div class="footer">S3 Athletics · Refresh to update</div>
+
+<script>
+const CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vR08pj2t3VAxmuffeXYDSpJUmXPx9RBuXNG6SQZqg0NqtjiZE74ZeOhFETZk7MkFhk1HRhGde8ZJSuv/pub?gid=732378926&single=true&output=csv';
+
+let weeks=[],idx=0,athlete='ALL',athletes=new Set();
+
+function splitCSV(line){
+  const out=[];let cur='',q=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){q=!q;continue;}
+    if(c===','&&!q){out.push(cur);cur='';continue;}
+    cur+=c;
+  }
+  out.push(cur);
+  return out;
+}
+
+function parseCSV(txt){
+  const lines=txt.split(/\r?\n/).filter(l=>l.trim());
+  const hdrs=splitCSV(lines[0]).map(h=>h.trim());
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const vals=splitCSV(lines[i]);
+    const row={};
+    hdrs.forEach((h,j)=>{row[h]=(vals[j]||'').trim();});
+    if(Object.values(row).some(v=>v!==''))rows.push(row);
+  }
+  return rows;
+}
+
+async function load(){
+  try{
+    const r=await fetch(CSV+'&t='+Date.now());
+    if(!r.ok)throw new Error();
+    const txt=await r.text();
+    weeks=parseCSV(txt).filter(r=>r['WEEK']&&r['WEEK']!=='');
+    athletes=new Set();
+    weeks.forEach(w=>{
+      ['TUE_SESSION','THU_SESSION','SAT_SESSION'].forEach(d=>{
+        (w[d]||'').replace(/\*([^*]+)\*/g,(_,m)=>{
+          m.split('/').forEach(a=>{if(a.trim())athletes.add(a.trim());});
+        });
+      });
+    });
+    document.getElementById('sdot').className='sdot';
+    document.getElementById('stxt').textContent='Live';
+    buildFilter();
+    return true;
+  }catch(e){
+    document.getElementById('sdot').className='sdot err';
+    document.getElementById('stxt').textContent='Offline';
+    return false;
+  }
+}
+
+function buildFilter(){
+  const bar=document.getElementById('fbar');
+  let html='<span class="flbl">Athlete</span><div class="fchip fall on" data-a="ALL">All</div>';
+  [...athletes].sort().forEach(a=>{html+=`<div class="fchip" data-a="${a}">${a}</div>`;});
+  bar.innerHTML=html;
+  bar.querySelectorAll('.fchip').forEach(el=>el.addEventListener('click',()=>{
+    athlete=el.dataset.a;
+    bar.querySelectorAll('.fchip').forEach(c=>c.classList.remove('on'));
+    el.classList.add('on');
+    render();
+  }));
+}
+
+function typePill(type){
+  if(!type||type==='REST')return'';
+  const t=type.toUpperCase();
+  let cls='tp-other';
+  if(t.includes('TRACK'))cls='tp-track';
+  else if(t.includes('GRASS'))cls='tp-grass';
+  else if(t.includes('HILL'))cls='tp-hill';
+  else if(t.includes('STEP'))cls='tp-steps';
+  return`<div class="type-pill ${cls}">${type}</div>`;
+}
+
+function parseDrills(txt){
+  if(!txt||txt.trim()==='')return[];
+  return txt.split('|').map(s=>s.trim()).filter(Boolean).map(line=>{
+    const m=line.match(/^\*([^*]+)\*\s*(.*)/);
+    if(m)return{aths:m[1].split('/').map(a=>a.trim()).filter(Boolean),text:m[2]||''};
+    return{aths:[],text:line};
+  });
+}
+
+function matches(item){
+  if(athlete==='ALL')return true;
+  if(item.aths.length===0)return true;
+  return item.aths.includes(athlete);
+}
+
+function buildCard(label,type,session,iconCls,id){
+  const isRest=!session||session.trim()===''||type==='REST';
+  if(isRest){
+    return`<div class="rest">
+      <div class="dicon ${iconCls}" style="opacity:0.3">${label.slice(0,3).toUpperCase()}</div>
+      <span class="rtxt">No session scheduled</span>
+    </div>`;
+  }
+  const drills=parseDrills(session);
+  const bid='b'+id,cid='c'+id;
+  const hasSpecific=athlete!=='ALL'&&drills.some(d=>d.aths.includes(athlete));
+  const autoOpen=hasSpecific?' open':'';
+  const pill=typePill(type);
+  const dHTML=drills.map(d=>{
+    const dim=matches(d)?'':' dim';
+    const chips=d.aths.length?`<div class="achips">${d.aths.map(a=>`<span class="ac">${a}</span>`).join('')}</div>`:'';
+    return`<div class="drill${dim}"><div class="ddot"></div><div class="dtext">${chips}${d.text}</div></div>`;
+  }).join('');
+  return`<div class="card">
+    <div class="chdr" onclick="tog('${bid}','${cid}')">
+      <div class="dicon ${iconCls}">${label.slice(0,3).toUpperCase()}</div>
+      <div class="cmeta">
+        <div class="cday">${label}</div>
+        <div class="ctype">${type||'Session'}</div>
+      </div>
+      <div class="chev${autoOpen}" id="${cid}">&#9654;</div>
+    </div>
+    <div class="cbody${autoOpen}" id="${bid}">
+      ${pill}
+      <div class="drills">${dHTML}</div>
+    </div>
+  </div>`;
+}
+
+window.tog=function(b,c){
+  document.getElementById(b).classList.toggle('open');
+  document.getElementById(c).classList.toggle('open');
+};
+
+function render(){
+  if(!weeks.length)return;
+  const w=weeks[idx];
+  document.getElementById('wkLabel').textContent='Week '+(w['WEEK']||'');
+  document.getElementById('wkDate').textContent=w['WB_DATE']?'w/b '+w['WB_DATE']:'';
+
+  const bg=[];
+  if(w['BLOCK'])bg.push(`<span class="badge badge-b">Block ${w['BLOCK']}</span>`);
+  if(w['BLOCK_WEEK']||w['BLOCK_WK'])bg.push(`<span class="badge badge-w">Block wk ${w['BLOCK_WEEK']||w['BLOCK_WK']}</span>`);
+  document.getElementById('badges').innerHTML=bg.join('');
+
+  const tue_t=w['TUE_TYPE']||'',tue_s=w['TUE_SESSION']||'';
+  const thu_t=w['THU_TYPE']||'',thu_s=w['THU_SESSION']||'';
+  const sat_t=w['SAT_TYPE']||'',sat_s=w['SAT_SESSION']||'';
+
+  const hasAny=tue_s||thu_s||sat_s;
+  let html='';
+  if(!hasAny){
+    html=`<div class="empty"><strong>Nothing scheduled yet</strong>Check back soon.</div>`;
+  }else{
+    html='<div class="sessions">';
+    html+=buildCard('Tuesday',tue_t,tue_s,'d-tue','tue');
+    html+=buildCard('Thursday',thu_t,thu_s,'d-thu','thu');
+    html+=buildCard('Saturday',sat_t,sat_s,'d-sat','sat');
+    html+='</div>';
+  }
+  document.getElementById('main').innerHTML=html;
+
+  const strip=document.getElementById('strip');
+  strip.innerHTML=weeks.map((wk,i)=>`<div class="wchip${i===idx?' on':''}" data-i="${i}">Wk ${wk['WEEK']}</div>`).join('');
+  strip.querySelectorAll('.wchip').forEach(el=>el.addEventListener('click',()=>{idx=+el.dataset.i;render();}));
+  const active=strip.querySelector('.on');
+  if(active)active.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});
+}
+
+function currentWeek(){
+  const today=new Date();let best=0;
+  weeks.forEach((w,i)=>{
+    const raw=w['WB_DATE']||'';
+    const p=raw.split('/');
+    if(p.length<3)return;
+    const year=p[2].length===2?'20'+p[2]:p[2];
+    const d=new Date(`${year}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`);
+    if(!isNaN(d)&&d<=today)best=i;
+  });
+  return best;
+}
+
+document.getElementById('prev').onclick=()=>{if(idx>0){idx--;render();}};
+document.getElementById('next').onclick=()=>{if(idx<weeks.length-1){idx++;render();}};
+
+load().then(ok=>{
+  if(!ok){
+    document.getElementById('main').innerHTML=`<div class="state"><div class="errtxt">Could not load programme.<br>Check your connection and refresh.</div></div>`;
+    return;
+  }
+  idx=currentWeek();
+  render();
+});
+</script>
+</body>
+</html>
